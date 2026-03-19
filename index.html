@@ -774,7 +774,12 @@ function getChecks(net,dev,prob,sub){
 
 // ─── QF CONTENT ───────────────────────────────────────────────────────────────
 function getQF(key){
-  const net=S.net,dev=S.dev,prob=S.prob;
+  // Always derive from key first, fall back to S state
+  const _kn = key&&key.startsWith('warp')?'warp':key&&key.startsWith('ds')?'ds':key&&key.startsWith('ls')?'ls':S.net;
+  const _kd = key&&key.includes('_iphone')?'iphone':key&&key.includes('_android')?'android':key&&key.includes('_flip')?'flip':S.dev;
+  const net=_kn||S.net;
+  const dev=_kd||S.dev;
+  const prob=S.prob;
 
   // ── WARP IPHONE NO SERVICE ──
   if(key==='warp_iphone_ns_sos'||key==='warp_iphone_ns_nosig'||key==='warp_iphone_ns_dropped'||key==='warp_iphone_ns_ported'){
@@ -1089,42 +1094,125 @@ function getQF(key){
   // ── DATA ──
   if(prob==='Data'){
     const isSlow=key.includes('slow');
-    const isWarp=net==='warp';
     let html=metaBar();
-    if(isWarp) html+=HS('R05 and R25 DO NOT affect domestic service.');
-    html+=HS('If data is slow (not stopped): run speed test first. If Speedtest HIGH + Fast.com LOW = Data Saver active, not a network issue.');
 
-    html+=SH('Backend Checks')+
-    ST(1,'Sync + Data Bucket + Blocks','Admin Portal → Sync. Data bucket must have balance. Remove 5G_4G_DATA_BLOCK or 4G_DATA_BLOCK if subscribed.','crit')+
-    (isWarp?ST(2,'DPFO Throttle Check',`${TAG('be','Backend')} Line Inquiry → DPFO Event Status. If ON/MHS PFO ON AND customer has remaining data → consult Rockstar to remove throttle.`,'warn'):'')+
-    (isWarp?ST(3,'CDMALESS Check','Verify CDMALESS config correct.','warn'):'')+
-    ST(isWarp?4:2,'Coverage & Outage','Check coverage map. Outage active = STOP, troubleshooting cannot fix tower outage.','crit')+
-    SH('Top Winning Steps')+
-    ST(1,'VPN & Profile Cleanup',`${TAG('fix','Top Cause')} VPN → Not Connected. Settings → General → VPN & Device Management → delete all carrier profiles (Mint, Google Fi, etc).`,'crit')+
-    ST(2,'Mobile Data & Roaming','Mobile Data ON. Data Roaming OFF. Voice & Data → 5G Auto or LTE. Wi-Fi OFF for testing.','warn')+
-    ST(3,'Reset Network Settings',dev==='iphone'?'Settings → General → Transfer or Reset → Reset → Reset Network Settings.':'General Management → Reset → Reset Mobile Network Settings.','warn')+
-    (isWarp&&dev==='android'?ST(4,'Manual APN — WARP',`${TAG('fix','Critical')} Verizon IMS + Verizon CBS + Verizon 2 APNs required. See No Service Warp Android guide for full APN table. Select Verizon 2 as default.`,'crit'):'')+
-    (isWarp?ST(isWarp&&dev==='android'?5:4,'Data Feature Alignment',`${TAG('be','Backend')} DYN_PFO_UNLMT and DYN_PFO_UNLMT_5G must be subscribed. DYN_PFO_1_MBPS throttle features must be unsubscribed if customer has remaining data.`,'warn'):'')+
-    ST(isWarp?(dev==='android'?6:5):4,'Backend Refresh',`${TAG('be','Backend')} Hotline line 30s → Restore → customer restart → test usmobile.com.`)+
-    (isSlow?SH('Slow Data Specific')+
-    ST('★','Speed Test Diagnosis','Speedtest.net AND Fast.com with Wi-Fi OFF.<br>Both LOW = genuine issue → proceed above.<br>Speedtest HIGH + Fast.com LOW = Data Saver active, not a network issue → STOP.','ok')+
-    ST('★','Congestion Test','Ask customer to move to a different location. Rules out tower congestion.'):'')+
+    // ── WARP iPhone ──────────────────────────────────────────
+    if(net==='warp'&&dev==='iphone'){
+      html+=HS('R05 and R25 DO NOT affect domestic service. Do NOT shuffle these.');
+      html+=HS('If data completely stopped on ALL services: go to No Service guide first.');
+      html+=SH('Backend Checks')+
+      ST(1,'Sync + Data Bucket + Blocks','Admin Portal → Sync. Data bucket must have balance. Remove <code>5G_4G_DATA_BLOCK</code> or <code>4G_DATA_BLOCK</code> if subscribed (WARP-specific feature blocks).','crit')+
+      ST(2,'DPFO Throttle Check',TAG('be','Backend')+' Line Inquiry → DPFO Event Status. If ON/MHS PFO ON and customer has remaining data → consult Rockstar to remove throttle.','warn')+
+      ST(3,'CDMALESS Check','CDMALESS = Y → WHL_CDMALESS + R20_ROAM_TIER subscribed, R00_DATATIER unsubscribed. Blank = opposite.','warn')+
+      ST(4,'Coverage & Outage','Check Verizon Coverage Map + Verizon Outage Checker. Outage = STOP.','crit')+
+      SH('🏆 Winning Steps')+
+      ST(1,'Cellular Settings','Settings → Cellular → Mobile Data ON. Cellular Data Options → Data Roaming OFF → Voice & Data → 5G Auto or LTE. Dual SIM: correct line set as Default.','warn')+
+      ST(2,'VPN & Profile Cleanup',TAG('fix','Top Cause')+' Settings → VPN → Not Connected. Settings → General → VPN & Device Management → delete any carrier profiles (Mint, Google Fi, Beta).','crit')+
+      ST(3,'Reset Network Settings','Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. <em>Deletes Wi-Fi passwords — get consent.</em>','warn')+
+      ST(4,'Data Feature Alignment',TAG('be','Backend')+' DYN_PFO_UNLMT + DYN_PFO_UNLMT_5G must be subscribed. DYN_PFO_1_MBPS_4G/5G must be unsubscribed if customer has remaining data.','warn')+
+      ST(5,'Backend Refresh',TAG('be','Backend')+' Hotline line 30s → Restore → customer restart → test usmobile.com.','ok')+
+      guideLink('Data Troubleshooting — WARP iPhone','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886820782619-Data-Troubleshooting-Warp-iPhone','Full guide if issue persists');
+    }
 
-    SH('Full Zendesk Guides')+
-    (net==='warp'&&dev==='iphone'?guideLink('Data Troubleshooting — WARP iPhone','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886820782619-Data-Troubleshooting-Warp-iPhone',''):'')+
-    (net==='warp'&&dev==='android'?guideLink('Data Troubleshooting — WARP Android','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886852295451-Data-Troubleshooting-Warp-Android',''):'')+
-    (net==='ls'&&dev==='iphone'?guideLink('Data Troubleshooting — Light Speed iPhone','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886851864475-Data-Troubleshooting-Light-Speed-iPhone',''):'')+
-    (net==='ls'&&dev==='android'?guideLink('Data Troubleshooting — Light Speed Android','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886851703067-Data-Troubleshooting-Light-Speed-Android',''):'')+
-    guideLink('Slow Data Speeds Guide','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886851527451-Troubleshooting-Slow-Data-Speeds','')+
-    teleport(net)+escalate();
+    // ── WARP Android ─────────────────────────────────────────
+    else if(net==='warp'&&dev==='android'){
+      html+=HS('R05 and R25 DO NOT affect domestic service. Do NOT shuffle these.');
+      html+=HS('If data completely stopped on ALL services: go to No Service guide first.');
+      html+=SH('Backend Checks')+
+      ST(1,'Sync + Data Bucket + Blocks','Admin Portal → Sync. Data bucket must have balance. Remove <code>5G_4G_DATA_BLOCK</code> or <code>4G_DATA_BLOCK</code> if subscribed (WARP-specific feature blocks).','crit')+
+      ST(2,'DPFO Throttle Check',TAG('be','Backend')+' Line Inquiry → DPFO Event Status. If ON/MHS PFO ON and customer has remaining data → consult Rockstar.','warn')+
+      ST(3,'CDMALESS Check','CDMALESS = Y → WHL_CDMALESS + R20_ROAM_TIER subscribed, R00 unsubscribed. Blank = opposite.','warn')+
+      ST(4,'Coverage & Outage','Check Verizon Coverage Map + Verizon Outage Checker. Outage = STOP.','crit')+
+      SH('🏆 Winning Steps')+
+      ST(1,'Data Roaming + Network Mode','Data Roaming OFF. Mobile Data ON. Settings → Connections → Mobile Networks → Preferred Network Type → 5G Auto or LTE. VoLTE ON.','warn')+
+      ST(2,'VPN Disconnect',TAG('fix','Top Cause')+' Settings → Connections → VPN → disconnect. Samsung: More connection settings → VPN.','crit')+
+      ST(3,'Reset Mobile Network Settings','Samsung: Settings → General Management → Reset → Reset Mobile Network Settings.<br>Pixel: Settings → System → Reset Options → Reset Wi-Fi, mobile & Bluetooth (<em>deletes Wi-Fi passwords</em>).','warn')+
+      ST(4,'Manual APN — WARP',TAG('fix','Critical')+' Delete all existing APNs. Add all 3:<br><table class="apn-table"><tr><th>Name</th><th>APN</th><th>Type</th><th>MCC/MNC</th></tr><tr><td>Verizon IMS</td><td><code>VZWIMS</code></td><td>ims,ia</td><td>311/480</td></tr><tr><td>Verizon CBS</td><td><code>VZWAPP</code></td><td>cbs,mms</td><td>311/480</td></tr><tr><td>Verizon 2</td><td><code>vzwinternet</code></td><td>default,supl</td><td>311/480</td></tr></table>Select <strong>Verizon 2</strong> as default → Airplane Mode 60s.<br><strong>Android 15+:</strong> Do NOT suggest MyTechSuite. Reset to Default is the only option.','crit')+
+      ST(5,'Data Feature Alignment',TAG('be','Backend')+' DYN_PFO_UNLMT + DYN_PFO_UNLMT_5G subscribed. DYN_PFO_1_MBPS throttle features unsubscribed if data remains.','warn')+
+      ST(6,'Backend Refresh',TAG('be','Backend')+' Hotline line 30s → Restore → customer restart → test usmobile.com.','ok')+
+      guideLink('Data Troubleshooting — WARP Android','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886852295451-Data-Troubleshooting-Warp-Android','Full guide if issue persists');
+    }
+
+    // ── DARK STAR iPhone ──────────────────────────────────────
+    else if(net==='ds'&&dev==='iphone'){
+      html+=HS('If ALL services failing (calls + texts + data): go to No Service guide first.');
+      html+=SH('Backend Checks')+
+      ST(1,'Sync + Current Service Details','Admin Portal → Sync. Open <strong>Current Service Details</strong> on the SIM page and check all buckets.<br><strong>If any bucket looks off → STOP. Do not troubleshoot. Consult Rockstar immediately.</strong>','crit')+
+      ST(2,'Coverage & Outage','Check AT&T Coverage Map + AT&T Outage page. Request deep check via #pak-shift-support if unclear.','crit')+
+      ST(3,'Coverage & Outage','Check AT&T Coverage Map + AT&T Outage page. Also request deep check via #pak-shift-support for AT&T outages.','crit')+
+      SH('🏆 Winning Steps')+
+      ST(1,'Cellular Settings','Settings → Cellular → Mobile Data ON. Data Roaming OFF. Voice & Data → 5G Auto or LTE. VoLTE ON (iPhone 13 and older).','warn')+
+      ST(2,'Profile Cleanup',TAG('fix','Top Cause')+' Settings → General → VPN & Device Management → delete any carrier profiles. Airplane Mode ON 60s → OFF.','crit')+
+      ST(3,'APN Profile Install (iOS 16 and below / iPad)','usmobile.com/apn-download → iOS → <strong>Dark Star</strong> → Download → Install via Files app → Settings → General → VPN & Device Management → Install → Airplane Mode 60s.','warn')+
+      ST(4,'Reset Network Settings','Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. <em>Deletes Wi-Fi passwords — get consent.</em>','warn')+
+      ST(5,'OTA + Activation Refresh',TAG('be','Backend')+' Admin Portal → Resend Activation → Resend OTA → Airplane Mode 60s → test.','ok')+
+      guideLink('No Service — Dark Star iPhone (includes Data steps)','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886763238043-No-Service-Troubleshooting-Dark-Star-iPhone-iPad','Full guide if issue persists');
+    }
+
+    // ── DARK STAR Android ─────────────────────────────────────
+    else if(net==='ds'&&dev==='android'){
+      html+=HS('If ALL services failing (calls + texts + data): go to No Service guide first.');
+      html+=SH('Backend Checks')+
+      ST(1,'Sync + Current Service Details','Admin Portal → Sync. Open <strong>Current Service Details</strong> on the SIM page and check all buckets.<br><strong>If any bucket looks off → STOP. Do not troubleshoot. Consult Rockstar immediately.</strong>','crit')+
+      ST(2,'Coverage & Outage','Check AT&T Coverage Map + AT&T Outage page. Request deep check via #pak-shift-support if unclear.','crit')+
+      SH('🏆 Winning Steps')+
+      ST(1,'Airplane Mode + SIM Config','Airplane Mode ON 60s → OFF. Settings → Connections → SIM Manager → US Mobile eSIM ON, set as Primary for Calls and Data. VoLTE ON.','warn')+
+      ST(2,'Manual APN — Dark Star',TAG('fix','#1 Resolver')+' Settings → Mobile Networks → APNs → Reset to Default → Add:<br><table class="apn-table"><tr><th>Field</th><th>Value</th></tr><tr><td>Name</td><td><code>Darkstar</code></td></tr><tr><td>APN</td><td><code>ereseller</code></td></tr><tr><td>MMSC</td><td><code>http://mmsc.mobile.att.net</code></td></tr><tr><td>MMS Proxy</td><td><code>proxy.mobile.att.net</code></td></tr><tr><td>MMS Port</td><td>80</td></tr><tr><td>MCC/MNC</td><td>310/280</td></tr><tr><td>APN Type</td><td>default,supl,mms,fota</td></tr><tr><td>Protocol</td><td>IPv4/IPv6</td></tr><tr><td>MVNO Type</td><td>GID (value: 20FF)</td></tr></table>Save → Select → Airplane Mode 60s.<br><strong>Android 15+:</strong> Do NOT suggest MyTechSuite. Reset to Default only.','crit')+
+      ST(3,'Manual Network Selection',TAG('fix','Cohort Verified')+' Settings → Mobile Networks → Network Operators → turn OFF Automatic → select <strong>AT&T</strong> manually.','ok')+
+      ST(4,'Reset Mobile Network Settings','Samsung: General Management → Reset → Reset Mobile Network Settings.<br>Pixel: Settings → System → Reset Options → Reset Mobile Network Settings.','warn')+
+      ST(5,'OTA + Activation Refresh',TAG('be','Backend')+' Admin Portal → Resend Activation → Resend OTA → Airplane Mode 60s → test.','ok')+
+      guideLink('No Service — Dark Star Android (includes Data steps)','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886749175195-No-Service-Troubleshooting-Dark-Star-Android','Full guide if issue persists');
+    }
+
+    // ── LIGHT SPEED iPhone ────────────────────────────────────
+    else if(net==='ls'&&dev==='iphone'){
+      html+=HS('If ALL services failing: go to No Service guide first.');
+      html+=SH('Backend Checks')+
+      ST(1,'Sync + Data Bucket + Blocks','Admin Portal → Sync. Data bucket must have balance. Remove <code>BARDATA</code> or <code>Data Block</code> if present.','crit')+
+      ST(2,'Coverage','Check T-Mobile Coverage Map. Light Speed covers Puerto Rico, Hawaii, USVI. NO Alaska coverage.','crit')+
+      SH('🏆 Winning Steps')+
+      ST(1,'Cellular Settings','Mobile Data ON. Data Roaming OFF. Voice & Data → 5G Auto or LTE. VoLTE ON (iPhone 13 and older). Wi-Fi OFF for testing.','warn')+
+      ST(2,'Profile & VPN Cleanup',TAG('fix','Top Cause')+' Settings → VPN → Not Connected. Settings → General → VPN & Device Management → delete any carrier profiles (Mint, Google Fi, Beta). Airplane Mode 60s.','crit')+
+      ST(3,'Reset Network Settings','Settings → General → Transfer or Reset iPhone → Reset → Reset Network Settings. <em>Deletes Wi-Fi passwords — get consent.</em>','warn')+
+      ST(4,'Hotline + Restore',TAG('be','Backend')+' Hotline line 60s → Restore → Full Sync → customer restart → test usmobile.com.','ok')+
+      guideLink('Data Troubleshooting — Light Speed iPhone','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886851864475-Data-Troubleshooting-Light-Speed-iPhone','Full guide if issue persists');
+    }
+
+    // ── LIGHT SPEED Android ───────────────────────────────────
+    else if(net==='ls'&&dev==='android'){
+      html+=HS('If ALL services failing: go to No Service guide first.');
+      html+=SH('Backend Checks')+
+      ST(1,'Sync + Data Bucket + Blocks','Admin Portal → Sync. Data bucket must have balance. Remove <code>BARDATA</code> or <code>Data Block</code> if present.','crit')+
+      ST(2,'Coverage & Device Bands','Check T-Mobile Coverage Map. Device must support LTE Band 4 and/or Band 12. Missing bands = coverage gaps indoors.','crit')+
+      SH('🏆 Winning Steps')+
+      ST(1,'Toggles + Network Mode','Mobile Data ON. Data Roaming OFF. Wi-Fi OFF. VoLTE ON. Network Mode → 5G Auto or LTE.<br>Redmi/Xiaomi missing VoLTE: dial <code>*#*#86583#*#*</code>.','warn')+
+      ST(2,'Manual APN — Light Speed',TAG('fix','Top Fix')+' Settings → Mobile Networks → APNs → Reset to Default → Add:<br><strong>Name:</strong> US Mobile | <strong>APN:</strong> <code>wholesale</code> | <strong>MMSC:</strong> <code>http://wholesale.mmsmvno.com/mms/wapenc</code> | <strong>Type:</strong> default,mms,supl<br>Save → Select → Airplane Mode 60s.<br><strong>Android 15+:</strong> Do NOT suggest MyTechSuite. Reset to Default only.','crit')+
+      ST(3,'Hidden Menu Network Force','Dial <code>*#*#4636#*#*</code> → Phone Information → Set Preferred Network Type → NR/LTE or LTE Only.','ok')+
+      ST(4,'Reset Mobile Network Settings','Settings → General Management → Reset → Reset Mobile Network Settings.','warn')+
+      ST(5,'Hotline + Restore',TAG('be','Backend')+' Hotline line 60s → Restore → Full Sync → customer restart → test usmobile.com.','ok')+
+      guideLink('Data Troubleshooting — Light Speed Android','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886851703067-Data-Troubleshooting-Light-Speed-Android','Full guide if issue persists');
+    }
+
+    else{
+      html+=IB('Select a specific network and device from the beginning for accurate data troubleshooting steps.');
+    }
+
+    if(isSlow){
+      html+=SH('Slow Data — Additional Steps')+
+      ST('★','Speed Test First','Run Speedtest.net AND Fast.com with Wi-Fi OFF.<br>Speedtest HIGH + Fast.com LOW = Data Saver active or streaming cap, not a network issue.<br>Both LOW = genuine issue → proceed with steps above.','ok')+
+      ST('★','Congestion Test','Ask customer to move to a different location/street. Rules out local tower congestion.','warn')+
+      guideLink('Slow Data Speeds Guide','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886851527451-Troubleshooting-Slow-Data-Speeds','');
+    }
+
+    html+=teleport(net)+escalate();
     return html;
   }
 
   // ── HOTSPOT ──
   if(prob==='Hotspot'){
     let html=metaBar();
-    html+=HS('iPad on Dark Star: Hotspot is NOT supported. Carrier-level limitation. No fix exists.');
-    html+=WB('iOS 26 + Light Speed Pool Plan: Hotspot breaks. Fix: Settings → Cellular → Cellular Data Options → APN Settings → Personal Hotspot → change from "hotspot" to <strong>wholesale</strong>.');
+    if(net==='ds'&&dev==='iphone') html+=HS('iPad on Dark Star: Hotspot is NOT supported. Carrier-level limitation. No fix exists.');
+    if(net==='ls'&&dev==='iphone') html+=WB('iOS 26 + Light Speed Pool Plan only: Hotspot APN must be changed from hotspot to <strong>wholesale</strong>. Only affects Pool Plans on iOS 26.');
     if(net==='warp') html+=HS('R05 and R25 DO NOT affect domestic service.');
     html+=IB('Hotspot requires working mobile data on the phone itself. If data is not working, fix data first.');
 
