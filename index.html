@@ -75,17 +75,17 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--tex
 .net-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 20px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden}
 .net-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .net-card.warp::before{background:var(--red)}
-.net-card.ds::before{background:linear-gradient(90deg,#7c3aed,#1a1a1a)}
-.net-card.ls::before{background:linear-gradient(90deg,#1a3a8f,#4a9eff)}
+.net-card.ds::before{background:var(--ds)}
+.net-card.ls::before{background:var(--ls)}
 .net-card:hover{transform:translateY(-3px)}
 .net-card.warp:hover{background:rgba(255,51,51,.06);border-color:var(--red)}
-.net-card.ds:hover{background:rgba(20,10,40,.6);border-color:#9333ea}
-.net-card.ls:hover{background:rgba(10,25,70,.5);border-color:#4a9eff}
+.net-card.ds:hover{background:rgba(255,59,122,.06);border-color:var(--ds)}
+.net-card.ls:hover{background:rgba(74,158,255,.06);border-color:var(--ls)}
 .net-logo{width:56px;height:56px;object-fit:contain;margin:0 auto 10px;display:block}
 .net-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:17px;margin-bottom:3px}
-.net-card.warp .net-name{font-weight:700}
-.net-card.ds .net-name{font-weight:700}
-.net-card.ls .net-name{font-weight:700}
+.net-card.warp .net-name{}
+.net-card.ds .net-name{} .ds-dark-word{color:#cccccc} body.light .ds-dark-word{color:#111111}
+.net-card.ls .net-name{}
 .net-carrier{font-size:11px;color:var(--text-soft);letter-spacing:0.04em}
 
 /* DEVICE PAGE */
@@ -93,7 +93,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--tex
 .page-sub{font-size:13px;color:var(--text-mid);margin-bottom:24px}
 .nbadge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:16px}
 .nbadge.warp{background:rgba(255,51,51,.12);color:#ff6b6b;border:1px solid rgba(255,51,51,.3)}
-.nbadge.ds{background:rgba(124,58,237,.12);color:#c084fc;border:1px solid rgba(124,58,237,.3)}
+.nbadge.ds{background:rgba(255,59,122,.12);color:#ff6b9a;border:1px solid rgba(255,59,122,.3)}
 .nbadge.ls{background:rgba(74,158,255,.12);color:#7abbff;border:1px solid rgba(74,158,255,.3)}
 
 .choice-list{display:flex;flex-direction:column;gap:8px}
@@ -147,7 +147,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--tex
 .qf-meta{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .qf-pill{font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text-mid)}
 .qf-pill.warp{background:rgba(255,51,51,.1);color:#ff6b6b;border-color:rgba(255,51,51,.25)}
-.qf-pill.ds{background:rgba(124,58,237,.1);color:#c084fc;border-color:rgba(124,58,237,.25)}
+.qf-pill.ds{background:rgba(255,59,122,.1);color:#ff6b9a;border-color:rgba(255,59,122,.25)}
 .qf-pill.ls{background:rgba(74,158,255,.1);color:#7abbff;border-color:rgba(74,158,255,.25)}
 
 .sec-head{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-soft);margin:24px 0 10px;display:flex;align-items:center;gap:8px}
@@ -250,7 +250,7 @@ body.light .dash-input{background:#edf0f8;border-color:#c8d0e0}
     <div class="loader-dot"></div>
     <div class="loader-dot"></div>
   </div>
-  <div class="loader-credit">innovation by Jazib H & Ammar S ✦</div>
+  <div class="loader-credit">Built by Jazib ✦</div>
 </div>
 
 <div class="topbar">
@@ -270,9 +270,10 @@ body.light .dash-input{background:#edf0f8;border-color:#c8d0e0}
   <p class="home-sub">Select a network to get started</p>
   <p class="home-hashtag">#TeamTechOps</p>
 
-  <p style="font-family:'Oswald',sans-serif;font-weight:500;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px">⚡ Coverage Alert Check — Run MDN, ZIP Code, or Area Code</p>
+  <p style="font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px">🔍 Alaska Number Check</p>
+  <p style="font-size:12px;color:var(--text-soft);margin-bottom:10px;">⚠️ This tool only checks if an MDN, ZIP code, or area code is associated with Alaska. It does not check general network coverage or signal availability.</p>
   <div class="dash-strip">
-    <input class="dash-input" id="dashInput" placeholder="Enter MDN, ZIP code, or area code to check for Alaska coverage restrictions..." onkeydown="if(event.key==='Enter')checkDash()">
+    <input class="dash-input" id="dashInput" placeholder="Paste MDN, ZIP (e.g. 99501), or area code (907) to check if Alaska-based..." onkeydown="if(event.key==='Enter')checkDash()">
     <button class="dash-check-btn" onclick="checkDash()">Check</button>
   </div>
   <div class="dash-result" id="dashResult"></div>
@@ -280,17 +281,17 @@ body.light .dash-input{background:#edf0f8;border-color:#c8d0e0}
   <div class="net-grid">
     <div class="net-card warp" onclick="selectNet('warp')">
       <img id="net-logo-warp" src="" class="net-logo" alt="">
-      <div class="net-name" style="font-weight:700"><span style="color:#ffffff">WA</span><span style="color:#ff2222">RP</span></div>
+      <div class="net-name"><span style="color:#ffffff">WA</span><span style="color:#ff2222">RP</span></div>
       <div class="net-carrier">Verizon</div>
     </div>
     <div class="net-card ds" onclick="selectNet('ds')">
       <img id="net-logo-ds" src="" class="net-logo" alt="">
-      <div class="net-name" style="font-weight:700"><span style="color:#aaaaaa">DARK</span><span style="color:#ff2222"> STAR</span></div>
+      <div class="net-name"><span class="ds-dark-word">DARK</span><span style="color:#ff2222"> STAR</span></div>
       <div class="net-carrier">AT&T</div>
     </div>
     <div class="net-card ls" onclick="selectNet('ls')">
       <img id="net-logo-ls" src="" class="net-logo" alt="">
-      <div class="net-name" style="font-weight:700"><span style="color:#4a9eff">LIGHT</span><span style="color:#ffffff"> SPEED</span></div>
+      <div class="net-name"><span style="color:#4169e1">LIGHT</span><span style="color:#ffffff"> SPEED</span></div>
       <div class="net-carrier">T-Mobile</div>
     </div>
   </div>
@@ -374,14 +375,8 @@ const DL = {iphone:'iPhone/iPad',android:'Android',flip:'Flip Phone'};
 
 // ─── ALASKA DETECTION ────────────────────────────────────────────────────────
 function isAlaska(val){
-  val = val.toString().trim().replace(/[^0-9]/g,'');
-  // 10-digit MDN starting with 907
-  if(val.length === 10 && val.startsWith('907')) return true;
-  // 11-digit with country code (19072...)
-  if(val.length === 11 && val.startsWith('1907')) return true;
-  // Just area code
+  val = val.toString().trim();
   if(val === '907') return true;
-  // ZIP code range
   const n = parseInt(val);
   if(!isNaN(n) && n >= 99501 && n <= 99950) return true;
   return false;
@@ -1156,8 +1151,8 @@ function getQF(key){
   // ── VOICEMAIL ──
   if(prob==='Voicemail'){
     let html=metaBar();
-    html+=HS('Do NOT reshuffle or remove VM/VVM features without customer consent. This permanently deletes all existing voicemails with no recovery.');
-    html+=HS('Teleporting the line permanently wipes the voicemail box on ALL networks with no recovery. Always warn customer and get explicit consent before proceeding.');
+    html+=HS('Light Speed: Do NOT reshuffle or remove VM/VVM features. This permanently deletes all existing voicemails with no recovery.');
+    html+=HS('Teleporting the line permanently wipes the voicemail box on ALL networks with no recovery possible. Always warn customer and get explicit consent before proceeding.');
     if(net==='warp') html+=HS('R05 and R25 DO NOT affect domestic service.');
 
     if(net==='ls'){
@@ -1189,7 +1184,7 @@ function getQF(key){
       ST(5,'VVM Not Syncing Fix','Resend Activation → Resend OTA (Send Voicemail Pilot Number) → restart device → Wi-Fi OFF, Data ON → test.','warn')+
       guideLink('Voicemail — Dark Star','https://usmobile-chats.zendesk.com/hc/en-us/articles/47886749709851-Voicemail-Visual-Voicemail-Troubleshooting-Dark-Star','Complete guide');
     }
-    html+=teleport(net,'<p style="margin-top:8px;font-size:13px;color:var(--red)">⚠️ Teleporting WILL permanently wipe the voicemail box on this line with no recovery. Inform customer and get explicit consent before proceeding.</p>')+escalate();
+    html+=teleport(net,'<p style="margin-top:8px;font-size:13px;color:var(--red)">⚠️ Teleporting the line permanently wipes the voicemail box on ALL networks with no recovery. Always inform customer and get explicit consent before proceeding.</p>')+escalate();
     return html;
   }
 
